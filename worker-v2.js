@@ -97,16 +97,8 @@ textarea.field-input{resize:vertical;min-height:70px;}
   </div>
   <div id="tabs">
     <button id="tab-board" class="active" onclick="showTab('board')">&#x1F4CB; LENTA</button>
-    <button id="tab-chat" onclick="showTab('chat')">&#x1F4AC; AI</button>
   </div>
   <div id="board-view"></div>
-  <div id="chat-view">
-    <div id="messages"></div>
-    <div id="input-row">
-      <input id="chat-input" type="text" placeholder="Komanda lietuviškai..." autocomplete="off">
-      <button id="send-btn" onclick="sendChat()">&#x2192;</button>
-    </div>
-  </div>
 </div>
 <div id="modal-overlay" onclick="if(event.target===this)closeModal()">
   <div id="modal">
@@ -161,13 +153,7 @@ function toggleTheme(){
   localStorage.setItem('theme',darkMode?'dark':'light');
 }
 
-function showTab(tab){
-  document.getElementById("board-view").style.display=tab==="board"?"flex":"none";
-  document.getElementById("chat-view").style.display=tab==="chat"?"flex":"none";
-  document.getElementById("tab-board").className=tab==="board"?"active":"";
-  document.getElementById("tab-chat").className=tab==="chat"?"active":"";
-  if(tab==="board")renderBoard();
-}
+function showTab(tab){ renderBoard(); }
 
 function renderBoard(){
   var el=document.getElementById("board-view");
@@ -331,27 +317,7 @@ function doMove(id,toCol){
 }
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeModal();});
 
-// AI Chat
-var SYSTEM='Tu esi asmeninis lentu asistentas. Valdyk Kanban lenta su 4 kolonomis: "priorities","dreams","doing","done". Atsakyk TIKTAI JSON: {"actions":[{"type":"add","col":"...","title":"...","desc":"..."},{"type":"move","id":"...","toCol":"..."},{"type":"delete","id":"..."}],"reply":"Trumpas atsakymas lietuviškai"}';
-var msgs=[{role:"bot",text:"Sveiki! Sakykite ka daryti."}];
 
-function renderMsgs(){
-  var el=document.getElementById("messages");
-  el.innerHTML=msgs.map(function(m){
-    return '<div class="msg '+m.role+'"><div class="bubble">'+esc(m.text)+'</div></div>';
-  }).join('');
-  if(loading)el.innerHTML+='<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
-  el.scrollTop=el.scrollHeight;
-}
-document.getElementById("chat-input").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();sendChat();}});
-
-async function sendChat(){
-  var input=document.getElementById("chat-input");
-  var text=input.value.trim();
-  if(!text||loading)return;
-  input.value="";
-  msgs.push({role:"user",text:text});
-  loading=true;renderMsgs();
   document.getElementById("send-btn").disabled=true;
   var ctx=cards.map(function(c){return"["+c.id+"] "+c.title+" | "+c.col;}).join("\\n")||"(tuscia)";
   try{
