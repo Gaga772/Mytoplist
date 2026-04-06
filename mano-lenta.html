@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mano Lenta">
+<title>Mano Lenta</title>
+
+<link rel="manifest" href="data:application/json,{
+  %22name%22:%22Mano%20Lenta%22,
+  %22short_name%22:%22Lenta%22,
+  %22start_url%22:%22.%22,
+  %22display%22:%22standalone%22,
+  %22background_color%22:%22%230d0d0d%22,
+  %22theme_color%22:%22%230d0d0d%22,
+  %22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d0d0d'/%3E%3Ctext y='.9em' font-size='80'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22}]
+}">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: #0d0d0d; color: #e0d5c5; font-family: Georgia, serif; overflow: hidden; }
+  ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+  #app { height: 100vh; display: flex; flex-direction: column; }
+
+  /* Header */
+  #header { padding: 14px 16px 12px; border-bottom: 1px solid #1e1e1e; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  #header h1 { font-size: 17px; font-weight: 400; color: #f5ece0; }
+  #header small { display: block; font-size: 10px; color: #444; font-family: monospace; letter-spacing: .05em; margin-top: 2px; }
+
+  /* Tabs */
+  #tabs { display: flex; border-bottom: 1px solid #1e1e1e; flex-shrink: 0; overflow-x: auto; }
+  #tabs button { flex: 1; min-width: 70px; padding: 10px 6px; background: none; border: none; border-bottom: 2px solid transparent; color: #555; font-size: 11px; font-family: monospace; cursor: pointer; letter-spacing: .04em; transition: all .2s; white-space: nowrap; }
+  #tabs button.active { color: #f0e8dc; }
+
+  /* Board */
+  #board { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .col-block { background: #111; border: 1px solid #1e1e1e; border-radius: 9px; overflow: hidden; }
+  .col-header { padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; }
+  .col-header span { font-size: 11px; font-family: monospace; letter-spacing: .06em; color: #e0d5c5; }
+  .col-count { border-radius: 20px; padding: 1px 8px; font-size: 11px; font-family: monospace; }
+  .col-cards { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .empty-col { color: #2a2a2a; font-size: 11px; font-style: italic; padding: 6px 4px; }
+
+  .card { border-left: 3px solid; border-radius: 6px; padding: 9px 10px; background: #161616; transition: transform .15s; }
+  .card:active { transform: scale(.98); }
+  .card-title { font-size: 13px; color: #f0e8dc; line-height: 1.4; }
+  .card.done .card-title { color: #444; text-decoration: line-through; }
+  .card-desc { font-size: 11px; color: #444; margin-top: 3px; line-height: 1.4; }
+  .card-id { font-size: 9px; color: #1e1e1e; margin-top: 5px; font-family: monospace; }
+  .card-actions { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+  .card-btn { background: #1e1e1e; border: none; color: #666; border-radius: 5px; padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: monospace; }
+  .card-btn:active { background: #2a2a2a; }
+
+  /* Chat */
+  #chat-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { display: flex; }
+  .msg.user { justify-content: flex-end; }
+  .bubble { max-width: 85%; padding: 9px 12px; font-size: 13px; line-height: 1.5; border-radius: 12px; }
+  .msg.bot .bubble { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px 12px 12px 2px; color: #a09888; }
+  .msg.user .bubble { background: #1a1206; border: 1px solid #e85d0433; border-radius: 12px 12px 2px 12px; color: #e0d5c5; }
+  .action-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+  .action-tag { background: #1e1e1e; border-radius: 3px; padding: 1px 5px; font-size: 9px; color: #555; font-family: monospace; }
+  .dots { display: flex; gap: 4px; padding: 4px 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #e85d04; animation: pulse 1.2s infinite ease-in-out; }
+  .dot:nth-child(2) { animation-delay: .2s; } .dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes pulse { 0%,100%{opacity:.2;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
+
+  #input-row { padding: 10px 12px; border-top: 1px solid #1e1e1e; display: flex; gap: 8px; flex-shrink: 0; }
+  #chat-input { flex: 1; background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; padding: 10px 12px; color: #e0d5c5; font-size: 14px; outline: none; font-family: Georgia, serif; }
+  #send-btn { background: #e85d04; border: none; border-radius: 8px; padding: 0 16px; color: #fff; font-size: 18px; cursor: pointer; }
+  #send-btn:disabled { background: #1a1a1a; color: #333; }
+
+  /* Modal */
+  #modal-overlay { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+  #modal { background: #141414; border: 1px solid #2a2a2a; border-radius: 14px; padding: 24px; width: 100%; max-width: 380px; }
+  #modal h3 { font-weight: 400; font-size: 18px; color: #f5ece0; margin-bottom: 16px; }
+  .field-label { font-size: 10px; color: #555; font-family: monospace; letter-spacing: .08em; }
+  .field-input { display: block; width: 100%; margin-top: 5px; margin-bottom: 14px; background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 7px; padding: 10px 12px; color: #f5ece0; font-size: 14px; outline: none; font-family: Georgia, serif; }
+  textarea.field-input { resize: vertical; min-height: 70px; }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-cancel { background: #1e1e1e; border: none; color: #888; border-radius: 7px; padding: 10px 18px; font-size: 13px; cursor: pointer; font-family: Georgia, serif; }
+  .btn-save { background: #e85d04; border: none; color: #fff; border-radius: 7px; padding: 10px 18px; font-size: 13px; cursor: pointer; font-family: Georgia, serif; }
+  
+  /* Move modal */
+  .move-option { padding: 11px 14px; border-radius: 7px; cursor: pointer; font-size: 14px; color: #ccc; transition: background .15s; margin-bottom: 5px; border: 1px solid #1e1e1e; }
+  .move-option:active { background: #2a2a2a; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <span style="font-size:22px">🧠</span>
+    <div>
+      <h1>Mano Lenta</h1>
+      <small id="card-count">0 kortelė(-ių)</small>
+    </div>
+    <button onclick="openAddModal(null)" style="margin-left:auto;background:#e85d0422;border:1px solid #e85d0444;color:#e85d04;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;">+ Pridėti</button>
+  </div>
+
+  <div id="tabs">
+    <button onclick="showTab('board')" id="tab-board" class="active">📋 LENTA</button>
+    <button onclick="showTab('chat')" id="tab-chat">💬 AI</button>
+  </div>
+
+  <!-- Board view -->
+  <div id="board-view" style="display:flex;flex:1;flex-direction:column;overflow:hidden;">
+    <div id="board"></div>
+  </div>
+
+  <!-- Chat view -->
+  <div id="chat-view" style="display:none;">
+    <div id="messages"></div>
+    <div id="input-row">
+      <input id="chat-input" type="text" placeholder="Komanda lietuviškai..." autocomplete="off">
+      <button id="send-btn" onclick="sendChat()">→</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="modal-overlay" style="display:none;" onclick="if(event.target===this)closeModal()">
+  <div id="modal">
+    <h3 id="modal-title">Nauja kortelė</h3>
+    <div class="field-label">PAVADINIMAS</div>
+    <input id="field-title" class="field-input" type="text" placeholder="Pavadinimas...">
+    <div class="field-label">APRAŠYMAS</div>
+    <textarea id="field-desc" class="field-input" placeholder="Aprašymas (nebūtinas)..."></textarea>
+    <div class="field-label" id="col-label">KOLONA</div>
+    <select id="field-col" class="field-input" style="margin-top:5px;margin-bottom:14px;">
+      <option value="priorities">🎯 Prioritetai</option>
+      <option value="dreams">✨ Svajonės</option>
+      <option value="doing">⚡ Daroma</option>
+      <option value="done">✅ Padaryta</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Atšaukti</button>
+      <button class="btn-save" onclick="saveModal()">Išsaugoti</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS = [
+  { id: "priorities", label: "Prioritetai", emoji: "🎯", color: "#e85d04" },
+  { id: "dreams",     label: "Svajonės",    emoji: "✨", color: "#7209b7" },
+  { id: "doing",      label: "Daroma",      emoji: "⚡", color: "#0077b6" },
+  { id: "done",       label: "Padaryta",    emoji: "✅", color: "#2d6a4f" },
+];
+
+const STORAGE_KEY = "giedrius-board-pwa";
+const INITIAL = [
+  { id: "p1", col: "priorities", title: "Išsilaikyti teises",   desc: "" },
+  { id: "p2", col: "priorities", title: "Sutvarkyti spintą",    desc: "" },
+  { id: "p3", col: "priorities", title: "Pakabinti džiovyklę",  desc: "" },
+  { id: "p4", col: "priorities", title: "Nusipirkti vitaminų",  desc: "" },
+  { id: "d1", col: "dreams",     title: "Nusipirkti motociklą", desc: "" },
+];
+
+let cards = [];
+let editingId = null;
+let addToCol = null;
+let loading = false;
+
+// --- Storage ---
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cards)); } catch {}
+}
+function load() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) { const p = JSON.parse(s); if (p.length) return p; }
+  } catch {}
+  return INITIAL.map(c => ({...c}));
+}
+
+function genId() { return Math.random().toString(36).slice(2, 9); }
+
+// --- Render board ---
+function renderBoard() {
+  const board = document.getElementById("board");
+  document.getElementById("card-count").textContent = cards.length + " kortelė(-ių)";
+  board.innerHTML = COLS.map(col => {
+    const colCards = cards.filter(c => c.col === col.id);
+    return `
+    <div class="col-block">
+      <div class="col-header" style="border-bottom:2px solid ${col.color}">
+        <span>${col.emoji} ${col.label.toUpperCase()}</span>
+        <span class="col-count" style="background:${col.color}33;color:${col.color}">${colCards.length}</span>
+      </div>
+      <div class="col-cards">
+        ${colCards.length === 0 ? '<div class="empty-col">tuščia</div>' : ''}
+        ${colCards.map(card => `
+        <div class="card ${card.col === 'done' ? 'done' : ''}" style="border-left-color:${col.color}" id="card-${card.id}">
+          <div class="card-title">${esc(card.title)}</div>
+          ${card.desc ? `<div class="card-desc">${esc(card.desc)}</div>` : ''}
+          <div class="card-actions">
+            <button class="card-btn" onclick="toggleDone('${card.id}')">${card.col === 'done' ? '↩ Atstatyti' : '✓ Padaryta'}</button>
+            <button class="card-btn" onclick="openMoveModal('${card.id}')">↔ Perkelti</button>
+            <button class="card-btn" onclick="openEditModal('${card.id}')">✏️</button>
+            <button class="card-btn" onclick="deleteCard('${card.id}')" style="color:#e85d0477">🗑</button>
+          </div>
+          <div class="card-id">#${card.id}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// --- Actions ---
+function toggleDone(id) {
+  const c = cards.find(c => c.id === id);
+  if (!c) return;
+  c.col = c.col === "done" ? "doing" : "done";
+  save(); renderBoard();
+}
+
+function deleteCard(id) {
+  cards = cards.filter(c => c.id !== id);
+  save(); renderBoard();
+}
+
+// --- Tabs ---
+function showTab(tab) {
+  document.getElementById("board-view").style.display = tab === "board" ? "flex" : "none";
+  document.getElementById("chat-view").style.display  = tab === "chat"  ? "flex" : "none";
+  document.getElementById("tab-board").className = tab === "board" ? "active" : "";
+  document.getElementById("tab-chat").className  = tab === "chat"  ? "active" : "";
+  if (tab === "board") renderBoard();
+}
+
+// --- Add/Edit Modal ---
+function openAddModal(col) {
+  editingId = null; addToCol = col || "priorities";
+  document.getElementById("modal-title").textContent = "➕ Nauja kortelė";
+  document.getElementById("field-title").value = "";
+  document.getElementById("field-desc").value = "";
+  document.getElementById("field-col").value = addToCol;
+  document.getElementById("modal-overlay").style.display = "flex";
+  setTimeout(() => document.getElementById("field-title").focus(), 100);
+}
+
+function openEditModal(id) {
+  const c = cards.find(c => c.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById("modal-title").textContent = "✏️ Redaguoti";
+  document.getElementById("field-title").value = c.title;
+  document.getElementById("field-desc").value = c.desc;
+  document.getElementById("field-col").value = c.col;
+  document.getElementById("modal-overlay").style.display = "flex";
+  setTimeout(() => document.getElementById("field-title").focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").style.display = "none";
+}
+
+function saveModal() {
+  const title = document.getElementById("field-title").value.trim();
+  if (!title) return;
+  const desc = document.getElementById("field-desc").value.trim();
+  const col  = document.getElementById("field-col").value;
+  if (editingId) {
+    const c = cards.find(c => c.id === editingId);
+    if (c) { c.title = title; c.desc = desc; c.col = col; }
+  } else {
+    cards.push({ id: genId(), col, title, desc });
+  }
+  save(); renderBoard(); closeModal();
+}
+
+// --- Move Modal ---
+function openMoveModal(id) {
+  const c = cards.find(c => c.id === id);
+  if (!c) return;
+  const overlay = document.getElementById("modal-overlay");
+  const modal   = document.getElementById("modal");
+  editingId = null;
+  modal.innerHTML = `
+    <h3>↔ Perkelti kortelę</h3>
+    <div style="font-size:13px;color:#666;margin-bottom:14px">${esc(c.title)}</div>
+    ${COLS.filter(col => col.id !== c.col).map(col => `
+      <div class="move-option" onclick="moveCard('${id}','${col.id}')" style="border-left:3px solid ${col.color}">
+        ${col.emoji} ${col.label}
+      </div>`).join('')}
+    <div class="modal-btns" style="margin-top:8px">
+      <button class="btn-cancel" onclick="resetModal()">Atšaukti</button>
+    </div>`;
+  overlay.style.display = "flex";
+}
+
+function moveCard(id, toCol) {
+  const c = cards.find(c => c.id === id);
+  if (c) c.col = toCol;
+  save(); renderBoard(); resetModal();
+}
+
+function resetModal() {
+  document.getElementById("modal-overlay").style.display = "none";
+  // restore original modal HTML on next open
+  document.getElementById("modal").innerHTML = `
+    <h3 id="modal-title">Nauja kortelė</h3>
+    <div class="field-label">PAVADINIMAS</div>
+    <input id="field-title" class="field-input" type="text" placeholder="Pavadinimas...">
+    <div class="field-label">APRAŠYMAS</div>
+    <textarea id="field-desc" class="field-input" placeholder="Aprašymas (nebūtinas)..."></textarea>
+    <div class="field-label" id="col-label">KOLONA</div>
+    <select id="field-col" class="field-input" style="margin-top:5px;margin-bottom:14px;">
+      <option value="priorities">🎯 Prioritetai</option>
+      <option value="dreams">✨ Svajonės</option>
+      <option value="doing">⚡ Daroma</option>
+      <option value="done">✅ Padaryta</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Atšaukti</button>
+      <button class="btn-save" onclick="saveModal()">Išsaugoti</button>
+    </div>`;
+}
+
+// --- Enter key in modal ---
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && document.getElementById("modal-overlay").style.display === "flex") {
+    const active = document.activeElement;
+    if (active && active.tagName !== "TEXTAREA" && active.tagName !== "SELECT") saveModal();
+  }
+  if (e.key === "Escape") closeModal();
+});
+
+// --- Chat / AI ---
+const SYSTEM = `Tu esi asmeninis lentų asistentas. Tavo darbas — valdyti Kanban lentą su 4 kolonomis:
+- "priorities" (Prioritetai 🎯)
+- "dreams" (Svajonės ✨)
+- "doing" (Daroma ⚡)
+- "done" (Padaryta ✅)
+Atsakyk TIKTAI JSON (be markdown, be backtick):
+{"actions":[{"type":"add","col":"...","title":"...","desc":"..."},{"type":"move","id":"...","toCol":"..."},{"type":"delete","id":"..."},{"type":"edit","id":"...","title":"...","desc":"..."}],"reply":"Trumpas atsakymas lietuviškai"}`;
+
+const msgs = [{ role: "bot", text: "Sveiki! 👋 Sakykite ką daryti. Pvz.: „Pridėk į svajonę: kelionė į Japoniją" arba „Perkell teises į Daroma"" }];
+
+function renderMessages() {
+  const el = document.getElementById("messages");
+  el.innerHTML = msgs.map(m => `
+    <div class="msg ${m.role}">
+      <div class="bubble">
+        ${esc(m.text)}
+        ${m.actions?.length ? `<div class="action-tags">${m.actions.map(a=>`<span class="action-tag">${a.type}${a.toCol?' →'+a.toCol:''}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>`).join('');
+  if (loading) el.innerHTML += `<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+document.getElementById("chat-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); sendChat(); }
+});
+
+async function sendChat() {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text || loading) return;
+  input.value = "";
+  msgs.push({ role: "user", text });
+  loading = true;
+  renderMessages();
+  document.getElementById("send-btn").disabled = true;
+
+  const boardCtx = cards.length
+    ? cards.map(c => `[${c.id}] "${c.title}"${c.desc ? " — "+c.desc : ""} | ${c.col}`).join("\n")
+    : "(lenta tuščia)";
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: [{ role: "user", content: `Lenta:\n${boardCtx}\n\nKomanda: ${text}` }],
+      }),
+    });
+    const data = await res.json();
+    const raw = (data.content?.[0]?.text || "{}").replace(/```json|```/g,"").trim();
+    let parsed = {};
+    try { parsed = JSON.parse(raw); } catch {}
+    const { actions = [], reply = "Atlikta!" } = parsed;
+
+    for (const a of actions) {
+      if (a.type === "add")    cards.push({ id: genId(), col: a.col||"priorities", title: a.title, desc: a.desc||"" });
+      if (a.type === "move")   { const c = cards.find(c=>c.id===a.id); if(c) c.col = a.toCol; }
+      if (a.type === "delete") cards = cards.filter(c => c.id !== a.id);
+      if (a.type === "edit")   { const c = cards.find(c=>c.id===a.id); if(c){ if(a.title)c.title=a.title; if(a.desc!==undefined)c.desc=a.desc; } }
+    }
+    save();
+    msgs.push({ role: "bot", text: reply, actions });
+  } catch {
+    msgs.push({ role: "bot", text: "Klaida. Bandykite dar kartą." });
+  }
+  loading = false;
+  document.getElementById("send-btn").disabled = false;
+  renderMessages();
+}
+
+// --- Init ---
+cards = load();
+renderBoard();
+renderMessages();
+
+// Tab bar color fix
+document.querySelectorAll("#tabs button").forEach(b => {
+  const col = COLS.find(c => b.id === "tab-" + c.id);
+  if (col) b.style.borderBottomColor = b.classList.contains("active") ? col.color : "transparent";
+});
+document.getElementById("tab-board").style.borderBottomColor = "#e85d04";
+</script>
+</body>
+</html>
