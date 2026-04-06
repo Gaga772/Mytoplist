@@ -1,0 +1,20 @@
+name: Deploy to Cloudflare Worker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare
+        run: |
+          RESULT=$(curl -s -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/workers/scripts/mano-lenta" \
+            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+            -H "Content-Type: application/javascript" \
+            --data-binary @worker-v2.js)
+          echo $RESULT | python3 -c "import sys,json; r=json.load(sys.stdin); print('Sekmingai!' if r.get('success') else 'Klaida: '+str(r.get('errors')))"
