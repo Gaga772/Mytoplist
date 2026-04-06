@@ -90,8 +90,8 @@ textarea.field-input{resize:vertical;min-height:70px;}
 <body>
 <div id="app">
   <div id="header">
-    <span style="font-size:20px">&#x1F9E0;</span>
-    <div><h1>Mano Lenta</h1><small id="card-count">0 korteli&#x173;(-i&#x173;)</small></div>
+    <span style="font-size:20px;cursor:pointer" onclick="location.reload()">&#x1F9E0;</span>
+    <div style="cursor:pointer" onclick="location.reload()"><h1>Mano Lenta</h1><small id="card-count">0 korteli&#x173;(-i&#x173;)</small></div>
     <button id="theme-btn" onclick="toggleTheme()">&#x2600; Diena</button>
     <button id="add-btn" onclick="openAddModal(null)">+ Prid&#x117;ti</button>
   </div>
