@@ -69,13 +69,13 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 #board-view { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
 
 .col-block { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-.col-header { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+.col-header { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
 .col-header-label { font-size: 11px; font-family: monospace; letter-spacing: .06em; color: var(--text); font-weight: 600; }
 .col-count { border-radius: 20px; padding: 1px 9px; font-size: 11px; font-family: monospace; }
 .col-cards { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 7px; }
 .empty-col { color: var(--text4); font-size: 11px; font-style: italic; padding: 8px 4px; text-align: center; }
 
-.card { border-left: 3px solid; border-radius: 7px; padding: 10px 12px; background: var(--bg3); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.card { border-left: 4px solid; border-radius: 7px; padding: 10px 12px; background: var(--bg3); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); transition: transform .15s, box-shadow .15s; } .card:active { transform: scale(.98); }
 .card.done { opacity: 0.5; }
 .card-title { font-size: 14px; color: var(--text); line-height: 1.4; }
 .card.done .card-title { text-decoration: line-through; color: var(--text3); }
@@ -123,7 +123,7 @@ textarea.field-input { resize: vertical; min-height: 70px; }
       <h1>Mano Lenta</h1>
       <small id="card-count">kraunama...</small>
     </div>
-    <button id="theme-btn" onclick="toggleTheme()">&#x263C; Diena</button>
+    <button id="theme-btn" onclick="toggleTheme()">☀️ Diena</button>
     <button id="add-btn" onclick="openAddModal(null)">+ Prid&#x117;ti</button>
   </div>
   <div id="tabs">
@@ -207,7 +207,7 @@ function esc(s) {
 function toggleTheme() {
   darkMode = !darkMode;
   document.body.classList.toggle("light", !darkMode);
-  document.getElementById("theme-btn").innerHTML = darkMode ? "&#x263C; Diena" : "&#x263D; Naktis";
+  document.getElementById("theme-btn").innerHTML = darkMode ? "☀️ Diena" : "🌙 Naktis";
 }
 
 function showTab(tab) {
@@ -225,7 +225,7 @@ function renderBoard() {
   COLS.forEach(function(col) {
     var cc = cards.filter(function(c) { return c.col === col.id; });
     html += '<div class="col-block">';
-    html += '<div class="col-header" style="border-bottom:2px solid ' + col.color + '">';
+    html += '<div class="col-header" style="border-bottom:2px solid ' + col.color + ';background:' + col.color + '18' + '">';
     html += '<span class="col-header-label">' + col.emoji + ' ' + col.label.toUpperCase() + '</span>';
     html += '<span class="col-count" style="background:' + col.color + '33;color:' + col.color + '">' + cc.length + '</span>';
     html += '</div><div class="col-cards">';
@@ -233,7 +233,7 @@ function renderBoard() {
       html += '<div class="empty-col">tu\\u0161\\u010dia</div>';
     }
     cc.forEach(function(card) {
-      html += '<div class="card ' + (card.col === "done" ? "done" : "") + '" style="border-left-color:' + col.color + '">';
+      html += '<div class="card ' + (card.col === "done" ? "done" : "") + '" style="border-left-color:' + col.color + ';background:' + col.color + '11' + '">';
       html += '<div class="card-title">' + esc(card.title) + '</div>';
       if (card.desc) html += '<div class="card-desc">' + esc(card.desc) + '</div>';
       html += '<div class="card-actions">';
