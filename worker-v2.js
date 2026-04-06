@@ -143,7 +143,7 @@ var INITIAL=[
   {id:"p4",col:"priorities",title:"Nusipirkti vitamin\\u0173",desc:""},
   {id:"d1",col:"dreams",title:"Nusipirkti motocikl\\u0105",desc:""}
 ];
-var cards=[],editingId=null,loading=false,darkMode=true;
+var cards=[],editingId=null,loading=false,darkMode=localStorage.getItem('theme')!=='light';
 var dragId=null;
 
 function genId(){return Math.random().toString(36).slice(2,9);}
@@ -158,6 +158,7 @@ function toggleTheme(){
   darkMode=!darkMode;
   document.body.classList.toggle("light",!darkMode);
   document.getElementById("theme-btn").textContent=darkMode?"☀ Diena":"☾ Naktis";
+  localStorage.setItem('theme',darkMode?'dark':'light');
 }
 
 function showTab(tab){
@@ -374,14 +375,12 @@ async function sendChat(){
   renderMsgs();renderBoard();
 }
 
+document.body.classList.toggle("light",!darkMode);
+document.getElementById("theme-btn").textContent=darkMode?"☀ Diena":"☾ Naktis";
 cards=load();renderBoard();renderMsgs();
 </script>
 </body>
 </html>
-`, { headers: { 
-        "Content-Type": "text/html;charset=UTF-8",
-        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-        "Pragma": "no-cache"
-      } });
+`, { headers: { "Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0", "Pragma": "no-cache" } });
   },
 };
