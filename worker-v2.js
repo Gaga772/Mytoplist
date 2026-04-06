@@ -36,9 +36,9 @@ export default {
   --border:#e0d8ce;--border2:#d0c8be;--accent:#e85d04;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:Georgia,serif;overflow:hidden;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:Georgia,serif;overflow:hidden;}#board-view::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-#app{height:100vh;display:flex;flex-direction:column;}
+#app{height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 #header{padding:12px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
 #header h1{font-size:17px;font-weight:400;color:var(--text);}
 #header small{display:block;font-size:10px;color:var(--text3);font-family:monospace;margin-top:1px;}
@@ -47,8 +47,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:Georgia
 #tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
 #tabs button{flex:1;padding:10px 6px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:11px;font-family:monospace;cursor:pointer;letter-spacing:.04em;}
 #tabs button.active{color:var(--text);border-bottom-color:var(--accent);}
-#board-view{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;}
-.col-block{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+#board-view{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;}
+.col-block{background:var(--bg2);border:1px solid var(--border);border-radius:10px;}
 .col-block.drag-over{border:2px dashed var(--accent);background:var(--bg3);}
 .col-header{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
 .col-count{border-radius:20px;padding:1px 9px;font-size:11px;font-family:monospace;}
